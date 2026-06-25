@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Признаки делимости — игра</title>
+  <style>
+    /* ----- переменные цветов ----- */
+    :root {
+      --blue-deep: #0a3b5c;
+      --blue-light: #eef5ff;
+      --blue-soft: #6ba7d1;
+      --yellow-accent: #f5c542;
+      --yellow-glow: #f5d742;
+      --white: #ffffff;
+      --gray-text: #2c3e4e;
+      --good-bg: #d4edda;
+      --bad-bg: #ffe1e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: var(--blue-light);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .game-container {
+      background: var(--white);
+      padding: 28px 30px 30px;
+      border-radius: 48px;
+      box-shadow: 0 20px 40px rgba(10, 59, 92, 0.20), 0 8px 16px rgba(0,0,0,0.06);
+      max-width: 750px;
+      width: 100%;
+      transition: 0.2s;
+    }
+
+    /* ----- верхняя ссылка ВК (по центру) ----- */
+    .top-link {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .top-link a {
+      background: var(--blue-deep);
+      color: var(--white);
+      padding: 8px 24px;
+      border-radius: 40px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: 0.15s;
+      border: 2px solid var(--blue-deep);
+    }
+    .top-link a:hover {
+      background: var(--blue-soft);
+      border-color: var(--blue-soft);
+      transform: scale(1.02);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--blue-deep);
+      margin: 0 0 10px 0;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 small {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--gray-text);
+      margin-left: auto;
+      opacity: 0.7;
+    }
+
+    /* ----- панель делителей ----- */
+    .divisor-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: var(--blue-light);
+      padding: 12px 16px;
+      border-radius: 60px;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+    .divisor-panel span {
+      font-weight: 600;
+      color: var(--blue-deep);
+      margin-right: 6px;
+      font-size: 16px;
+    }
+    .divisor-btn {
+      background: var(--white);
+      border: none;
+      border-radius: 40px;
+      padding: 6px 16px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--gray-text);
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      transition: all 0.15s;
+      border: 2px solid transparent;
+    }
+    .divisor-btn:hover {
+      background: #dce8f5;
+      transform: scale(1.02);
+    }
+    .divisor-btn.active {
+      background: var(--blue-deep);
+      color: var(--white);
+      border-color: var(--blue-deep);
+      box-shadow: 0 6px 12px rgba(10, 59, 92, 0.25);
+    }
+
+    /* ----- статистика ----- */
+    .stats {
+      display: flex;
+      gap: 28px;
+      background: var(--blue-light);
+      padding: 10px 20px;
+      border-radius: 40px;
+      margin-bottom: 14px;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--gray-text);
+      flex-wrap: wrap;
+    }
+    .stats span {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .stats .num {
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--blue-deep);
+      min-width: 28px;
+      text-align: center;
+    }
+    .stats .num.green {
+      color: #1e7b4a;
+    }
+    .stats .num.orange {
+      color: #b45a2a;
+    }
+
+    /* ----- таблица ----- */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 8px 0 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 10px;
+      table-layout: fixed;
+    }
+    td {
+      background: var(--blue-light);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--blue-deep);
+      padding: 16px 0;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.12s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.02);
+      border: 3px solid transparent;
+      line-height: 1.2;
+      aspect-ratio: 1 / 1;
+      width: 20%;
+    }
+    td:hover {
+      background: #dce8f5;
+      transform: scale(1.02);
+    }
+    td.selected {
+      background: #c7daf5;
+      border-color: var(--blue-soft);
+      box-shadow: 0 0 0 2px var(--blue-soft);
+    }
+    td.correct {
+      background: var(--good-bg) !important;
+      border-color: #1f8b4c !important;
+      box-shadow: 0 0 0 2px #1f8b4c;
+    }
+    td.wrong {
+      background: var(--bad-bg) !important;
+      border-color: #c73a3a !important;
+      box-shadow: 0 0 0 2px #c73a3a;
+    }
+    td.missed {
+      background: #d4e6ff !important;
+      border-color: var(--blue-soft) !important;
+      box-shadow: 0 0 0 2px var(--blue-soft);
+      opacity: 0.7;
+    }
+
+    /* ----- сообщение ----- */
+    .message {
+      text-align: center;
+      margin: 8px 0 12px;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--gray-text);
+      min-height: 32px;
+    }
+    .message .highlight {
+      color: #1f8b4c;
+      font-weight: 700;
+    }
+    .message .highlight-red {
+      color: #c73a3a;
+      font-weight: 700;
+    }
+
+    /* ----- кнопки действий ----- */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 6px;
+      justify-content: center;
+    }
+    .btn {
+      background: var(--white);
+      border: none;
+      border-radius: 40px;
+      padding: 12px 28px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--gray-text);
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+      transition: all 0.15s;
+      border: 2px solid #cddae9;
+      flex: 1 1 auto;
+      min-width: 120px;
+    }
+    .btn:hover {
+      background: #eaf0fa;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    }
+    .btn-primary {
+      background: var(--blue-deep);
+      border-color: var(--blue-deep);
+      color: var(--white);
+    }
+    .btn-primary:hover {
+      background: #0a2d47;
+      border-color: #0a2d47;
+    }
+    .btn-success {
+      background: #1f8b4c;
+      border-color: #1f8b4c;
+      color: var(--white);
+    }
+    .btn-success:hover {
+      background: #16733e;
+      border-color: #16733e;
+    }
+    .btn-outline {
+      background: transparent;
+      border-color: #b0c4dd;
+    }
+    .btn-outline:hover {
+      background: var(--blue-light);
+    }
+
+    /* ----- нижняя ссылка Telegram (по центру) ----- */
+    .bottom-link {
+      text-align: center;
+      margin-top: 18px;
+    }
+    .bottom-link a {
+      background: var(--yellow-accent);
+      color: var(--blue-deep);
+      padding: 10px 28px;
+      border-radius: 40px;
+      font-size: 17px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-block;
+      transition: 0.15s;
+      border: 2px solid var(--yellow-accent);
+    }
+    .bottom-link a:hover {
+      background: var(--yellow-glow);
+      border-color: var(--yellow-glow);
+      transform: scale(1.03);
+    }
+
+    /* ----- адаптив ----- */
+    @media (max-width: 600px) {
+      .game-container { padding: 18px; }
+      td { font-size: 20px; padding: 12px 0; }
+      .divisor-btn { padding: 5px 12px; font-size: 15px; }
+      .stats { font-size: 15px; gap: 12px; }
+      .btn { padding: 10px 16px; font-size: 15px; min-width: 90px; }
+      .top-link a, .bottom-link a { font-size: 14px; padding: 6px 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+
+  <!-- Верхняя ссылка ВК (без эмодзи, по центру) -->
+  <div class="top-link">
+    <a href="https://vk.com/mathforlife" target="_blank">Сообщество ВК</a>
+  </div>
+
+  <h1>
+    🔢 Признаки делимости
+    <small>выбери делитель</small>
+  </h1>
+
+  <!-- Панель делителей (2,3,4,5,7,9,11) -->
+  <div class="divisor-panel">
+    <span>Делитель:</span>
+    <button class="divisor-btn active" data-div="2">2</button>
+    <button class="divisor-btn" data-div="3">3</button>
+    <button class="divisor-btn" data-div="4">4</button>
+    <button class="divisor-btn" data-div="5">5</button>
+    <button class="divisor-btn" data-div="7">7</button>
+    <button class="divisor-btn" data-div="9">9</button>
+    <button class="divisor-btn" data-div="11">11</button>
+  </div>
+
+  <!-- Статистика -->
+  <div class="stats">
+    <span>📌 Выбрано <span class="num" id="selectedCount">0</span></span>
+    <span>✅ Правильно <span class="num green" id="correctCount">0</span></span>
+    <span>🎯 Всего <span class="num orange" id="totalCorrect">0</span></span>
+  </div>
+
+  <!-- Таблица -->
+  <div class="table-wrap">
+    <table id="gameTable">
+      <!-- ячейки вставляются JS -->
+    </table>
+  </div>
+
+  <!-- Сообщение -->
+  <div id="message" class="message"></div>
+
+  <!-- Кнопки -->
+  <div class="actions">
+    <button class="btn btn-success" id="checkBtn">✅ Проверить ответы</button>
+    <button class="btn btn-outline" id="resetBtn">↺ Сбросить выбор</button>
+    <button class="btn btn-primary" id="newGameBtn">🔄 Новая игра</button>
+  </div>
+
+  <!-- Нижняя ссылка Telegram (без эмодзи) -->
+  <div class="bottom-link">
+    <a href="https://t.me/mathfourlife" target="_blank">Telegram-канал</a>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    // ----- состояние -----
+    const state = {
+      divisor: 2,
+      numbers: [],
+      selected: [],
+      checked: false,
+    };
+
+    // ----- DOM -----
+    const tableEl = document.getElementById('gameTable');
+    const selectedSpan = document.getElementById('selectedCount');
+    const correctSpan = document.getElementById('correctCount');
+    const totalSpan = document.getElementById('totalCorrect');
+    const messageEl = document.getElementById('message');
+    const divisorBtns = document.querySelectorAll('.divisor-btn');
+    const checkBtn = document.getElementById('checkBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const newGameBtn = document.getElementById('newGameBtn');
+
+    // ----- helpers -----
+    function isDivisible(num, div) {
+      return num % div === 0;
+    }
+
+    // генерация 25 чисел с долей кратных ~0.4
+    function generateNumbers(div) {
+      const total = 25;
+      const minVal = 1;
+      const maxVal = 100;
+      const targetRatio = 0.4;
+      const nums = [];
+      for (let i = 0; i < total; i++) {
+        let num;
+        const isMultiple = Math.random() < targetRatio;
+        if (isMultiple) {
+          const maxMul = Math.floor(maxVal / div);
+          let mul = Math.floor(Math.random() * maxMul) + 1;
+          num = mul * div;
+          if (num === 0) num = div;
+        } else {
+          let attempts = 0;
+          do {
+            num = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+            attempts++;
+          } while (isDivisible(num, div) && attempts < 50);
+          if (isDivisible(num, div)) {
+            num = (num + 1) % (maxVal + 1);
+            if (num < minVal) num = minVal + 1;
+            if (isDivisible(num, div)) num = (num % div === 0) ? num + 1 : num;
+          }
+        }
+        nums.push(num);
+      }
+      // проверка, что есть хотя бы 3 кратных
+      const countDiv = nums.filter(n => isDivisible(n, div)).length;
+      if (countDiv < 3 || countDiv > 15) {
+        return generateNumbers(div); // рекурсия
+      }
+      return nums;
+    }
+
+    // отрисовка таблицы
+    function renderTable() {
+      const div = state.divisor;
+      state.numbers = generateNumbers(div);
+      state.selected = new Array(25).fill(false);
+      state.checked = false;
+      let html = '';
+      for (let r = 0; r < 5; r++) {
+        html += '<tr>';
+        for (let c = 0; c < 5; c++) {
+          const idx = r * 5 + c;
+          const num = state.numbers[idx];
+          html += `<td data-index="${idx}">${num}</td>`;
+        }
+        html += '</tr>';
+      }
+      tableEl.innerHTML = html;
+      clearHighlight();
+      updateStatsAndMessage();
+      messageEl.textContent = `Выбери числа, которые делятся на ${div} без остатка!`;
+    }
+
+    // обновить счётчики и сообщение
+    function updateStatsAndMessage() {
+      const div = state.divisor;
+      const totalCorrect = state.numbers.filter(n => isDivisible(n, div)).length;
+      let selectedCount = state.selected.filter(Boolean).length;
+      let correctSelected = 0;
+      for (let i = 0; i < state.selected.length; i++) {
+        if (state.selected[i] && isDivisible(state.numbers[i], div)) {
+          correctSelected++;
+        }
+      }
+      selectedSpan.textContent = selectedCount;
+      correctSpan.textContent = correctSelected;
+      totalSpan.textContent = totalCorrect;
+
+      if (state.checked) {
+        const total = totalCorrect;
+        const missed = total - correctSelected;
+        const wrong = selectedCount - correctSelected;
+        let msg = `✅ Правильно: ${correctSelected} из ${total}`;
+        if (missed > 0) msg += `, пропущено ${missed}`;
+        if (wrong > 0) msg += `, лишних ${wrong}`;
+        if (correctSelected === total && wrong === 0) msg += ' 🎉 Отлично!';
+        messageEl.textContent = msg;
+      } else {
+        messageEl.textContent = `Выбери числа, которые делятся на ${div} без остатка!`;
+      }
+    }
+
+    function clearHighlight() {
+      document.querySelectorAll('#gameTable td').forEach(td => {
+        td.classList.remove('correct', 'wrong', 'missed');
+      });
+    }
+
+    function applyCheckHighlight() {
+      const div = state.divisor;
+      const tds = document.querySelectorAll('#gameTable td');
+      tds.forEach((td, idx) => {
+        const num = state.numbers[idx];
+        const isDiv = isDivisible(num, div);
+        const isSel = state.selected[idx];
+        td.classList.remove('correct', 'wrong', 'missed');
+        if (isDiv && isSel) {
+          td.classList.add('correct');
+        } else if (!isDiv && isSel) {
+          td.classList.add('wrong');
+        } else if (isDiv && !isSel) {
+          td.classList.add('missed');
+        }
+      });
+    }
+
+    // ----- обработка клика по ячейке -----
+    function handleCellClick(e) {
+      const td = e.target.closest('td');
+      if (!td) return;
+      if (state.checked) {
+        state.checked = false;
+        clearHighlight();
+        messageEl.textContent = `Выбери числа, которые делятся на ${state.divisor} без остатка!`;
+      }
+      const idx = parseInt(td.dataset.index, 10);
+      if (isNaN(idx)) return;
+      state.selected[idx] = !state.selected[idx];
+      td.classList.toggle('selected');
+      updateStatsAndMessage();
+    }
+
+    // ----- установка делителя -----
+    function setDivisor(div) {
+      if (state.divisor === div) return;
+      state.divisor = div;
+      divisorBtns.forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.div, 10) === div);
+      });
+      renderTable();
+      state.checked = false;
+      clearHighlight();
+      updateStatsAndMessage();
+    }
+
+    // ----- проверка -----
+    function checkAnswers() {
+      state.checked = true;
+      applyCheckHighlight();
+      updateStatsAndMessage();
+    }
+
+    // ----- сброс -----
+    function resetSelection() {
+      state.selected = new Array(25).fill(false);
+      state.checked = false;
+      clearHighlight();
+      document.querySelectorAll('#gameTable td').forEach(td => td.classList.remove('selected'));
+      updateStatsAndMessage();
+      messageEl.textContent = `Выбери числа, которые делятся на ${state.divisor} без остатка!`;
+    }
+
+    // ----- новая игра -----
+    function newGame() {
+      renderTable();
+      state.checked = false;
+      clearHighlight();
+      document.querySelectorAll('#gameTable td').forEach(td => td.classList.remove('selected'));
+      updateStatsAndMessage();
+    }
+
+    // ----- инициализация -----
+    function init() {
+      divisorBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          setDivisor(parseInt(this.dataset.div, 10));
+        });
+      });
+      tableEl.addEventListener('click', handleCellClick);
+      checkBtn.addEventListener('click', checkAnswers);
+      resetBtn.addEventListener('click', resetSelection);
+      newGameBtn.addEventListener('click', newGame);
+      // старт с делителем 2
+      setDivisor(2);
+    }
+
+    init();
+  })();
+</script>
+</body>
+</html>
